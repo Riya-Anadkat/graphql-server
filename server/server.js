@@ -6,9 +6,11 @@ const cors = require('cors');
 let schema = buildSchema(`
     type Query {
         getComment(id: ID!): Comment
+        getComments: [Comment]
     }
     type Mutation {
         createComment(commentInput: Input): Comment
+        deleteComment(id: ID!): Boolean
     }
     type Comment {
         id: ID!
@@ -18,35 +20,6 @@ let schema = buildSchema(`
     input Input {
         comment: String
         author: String
-    }
-
-
-
-    type User {
-        id : ID!
-        userName : String!
-    }
-    type Thread {
-        id: ID!
-        user: User!
-        topic: String!
-        caption : String
-        comments: [Comment]
-    }
-    type Query {
-        getUser(id: ID): User!
-        getThread(user_id: ID, thread_id: ID) : Thread!
-        getThreads() : [Thread]
-    }
-    type Mutation {
-        createUser(userName: String): User
-        createThread(user_id: ID, topic: String): Thread
-        createComment(thread_id: ID, user_id: ID, comment: String): Comment
-    }
-    type Comment {
-        id: ID!
-        comment: String
-        author: User
     }
 `);
 
@@ -61,11 +34,20 @@ let root = {
         const { comment, author } = database[id] || "";
         return {id, comment, author};
     },
+    getComments: () => {
+        return Object.keys(database).map((id) => {
+            const { comment, author } = database[id] || "";
+            return {id, comment, author}
+        });
+    },
     createComment: ({commentInput}) => {
         const { comment, author } = commentInput || "";
         id++;
         database[id] = commentInput;
         return {id, comment, author};
+    },
+    deleteComment: ({id}) => {
+        delete database[id]; 
     }
 };
 
